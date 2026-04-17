@@ -149,6 +149,19 @@ CREATE TABLE meta (
     });
   }
 
+  @override
+  Future<void> clearPracticeDataLocal() async {
+    await _database.transaction((txn) async {
+      await txn.delete('ledger_transactions');
+      await txn.delete('goals');
+      await txn.delete(
+        'meta',
+        where: 'k = ?',
+        whereArgs: ['last_learning_bonus_ms'],
+      );
+    });
+  }
+
   LedgerTransaction _rowToTx(Map<String, Object?> row) {
     return LedgerTransaction(
       id: row['id']! as String,

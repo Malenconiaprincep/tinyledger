@@ -63,4 +63,19 @@ void main() {
     );
     expect(second, isFalse);
   });
+
+  test('clearPracticeDataLocal wipes tx and goals, keeps meta prefs', () async {
+    final repo = FakeLedgerRepository();
+    final svc = LedgerService(repo, uuid: const Uuid());
+    await svc.addIncome(amountCents: 500, category: '零花钱');
+    await repo.metaSet('user_reduce_motion', '1');
+    await repo.metaSet('onboarding_done', '1');
+    await svc.createGoal(name: '书', targetCents: 1000);
+    await repo.clearPracticeDataLocal();
+    expect(await svc.walletBalanceCents(), 0);
+    expect(await svc.listTransactions(), isEmpty);
+    expect(await svc.listGoals(), isEmpty);
+    expect(await repo.metaGet('user_reduce_motion'), '1');
+    expect(await repo.metaGet('onboarding_done'), '1');
+  });
 }

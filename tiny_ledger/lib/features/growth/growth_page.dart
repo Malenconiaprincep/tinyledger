@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/app_header.dart';
 import '../../app/tiny_ledger_theme.dart';
 import '../../domain/money.dart';
 import '../../providers.dart';
@@ -21,117 +20,102 @@ class GrowthPage extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final snap = ref.watch(ledgerSnapshotProvider);
 
-    return Scaffold(
-      body: snap.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('加载失败：$e')),
-        data: (data) {
-          final bottomInset = MediaQuery.paddingOf(context).bottom + 88;
-          final balanceText = formatCentsToYuan(data.balanceCents);
+    return snap.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('加载失败：$e')),
+      data: (data) {
+        final bottomInset = MediaQuery.paddingOf(context).bottom + 88;
+        final balanceText = formatCentsToYuan(data.balanceCents);
 
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TinyLedgerAppHeader(
-                          trailing: IconButton(
-                            tooltip: '星光（占位）',
-                            onPressed: () {},
-                            icon: Icon(
-                              Icons.star_rounded,
-                              color: scheme.primary,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '梦想金库',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '趣味探索版 · 小金库',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        _DreamVaultHeroCard(
-                          scheme: scheme,
-                          balanceText: balanceText,
-                        ),
-                        const SizedBox(height: 20),
-                        _GrowthDepositPreviewBlock(
-                          scheme: scheme,
-                          onConfirmDeposit: () async {
-                            final applied = await ref
-                                .read(ledgerServiceProvider)
-                                .tryApplyLearningBonus(
-                                  bonusAmountCents: 500,
-                                  intervalDays: 7,
-                                );
-                            bumpLedger(ref);
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  applied
-                                      ? '魔法已生效：已发放学习奖励（模拟）'
-                                      : '还没到领取时间，过几天再来试试',
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        Material(
-                          color: scheme.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(
-                            TinyLedgerLayout.cardRadius,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(18),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  color: scheme.secondary,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    GrowthPage._disclaimer,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge
-                                        ?.copyWith(
-                                          height: 1.35,
-                                          color: scheme.onSurface,
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: bottomInset),
-                      ],
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '梦想金库',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
-                  ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '趣味探索版 · 小金库',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _DreamVaultHeroCard(
+                      scheme: scheme,
+                      balanceText: balanceText,
+                    ),
+                    const SizedBox(height: 20),
+                    _GrowthDepositPreviewBlock(
+                      scheme: scheme,
+                      onConfirmDeposit: () async {
+                        final applied = await ref
+                            .read(ledgerServiceProvider)
+                            .tryApplyLearningBonus(
+                              bonusAmountCents: 500,
+                              intervalDays: 7,
+                            );
+                        bumpLedger(ref);
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              applied
+                                  ? '魔法已生效：已发放学习奖励（模拟）'
+                                  : '还没到领取时间，过几天再来试试',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Material(
+                      color: scheme.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(
+                        TinyLedgerLayout.cardRadius,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(18),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: scheme.secondary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                GrowthPage._disclaimer,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      height: 1.35,
+                                      color: scheme.onSurface,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: bottomInset),
+                  ],
                 ),
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

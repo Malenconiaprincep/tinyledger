@@ -21,4 +21,9 @@ abstract class LedgerRepository {
   Future<void> runInTransaction(
     Future<void> Function(LedgerRepository scoped) action,
   );
+
+  /// 清空本机「练习用」记账数据：流水、目标，以及仅影响练习规则的 meta（如学习奖励冷却）。
+  ///
+  /// 保留设备级偏好（如减弱动效）、是否完成过引导等；不包含云同步逻辑。
+  Future<void> clearPracticeDataLocal();
 }

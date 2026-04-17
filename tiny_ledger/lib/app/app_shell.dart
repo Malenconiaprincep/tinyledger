@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'app_header.dart';
 import 'stitch_icons.dart';
 import '../features/goals/goals_page.dart';
 import '../features/growth/growth_page.dart';
@@ -31,7 +32,35 @@ class _AppShellState extends ConsumerState<AppShell> {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       extendBody: true,
-      body: _pages[index],
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Material(
+            color: scheme.surfaceContainerLowest,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 6, 12, 2),
+                    child: const TinyLedgerAppHeader(),
+                  ),
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: scheme.outlineVariant.withValues(alpha: 0.22),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(child: _pages[index]),
+        ],
+      ),
       bottomNavigationBar: SafeArea(
         top: false,
         minimum: const EdgeInsets.fromLTRB(12, 0, 12, 12),

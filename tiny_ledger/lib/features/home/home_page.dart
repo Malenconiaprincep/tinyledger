@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/app_header.dart';
 import '../../app/tiny_ledger_theme.dart';
 import '../../domain/ledger_models.dart';
 import '../../domain/money.dart';
@@ -39,194 +38,166 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final snap = ref.watch(ledgerSnapshotProvider);
     final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: snap.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('加载失败：$e')),
-        data: (data) {
-          final (tInc, tExp) = _todayIncomeExpenseCents(data.transactions);
-          final bottomInset = MediaQuery.paddingOf(context).bottom + 24;
+    return snap.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('加载失败：$e')),
+      data: (data) {
+        final (tInc, tExp) = _todayIncomeExpenseCents(data.transactions);
+        final bottomInset = MediaQuery.paddingOf(context).bottom + 24;
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SafeArea(
-                bottom: false,
-                child: Material(
-                  color: scheme.surface,
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const TinyLedgerAppHeader(),
-                        Text(
-                          '虚拟小金库 · 练习用',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            height: 1.35,
-                          ),
-                        ),
-                      ],
-                    ),
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Text(
+                  '虚拟小金库 · 练习用',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    height: 1.35,
                   ),
                 ),
               ),
-              Divider(
-                height: 1,
-                thickness: 1,
-                color: scheme.outlineVariant.withValues(alpha: 0.22),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _PlayfulBalanceCard(balanceCents: data.balanceCents),
               ),
-              Expanded(
-                child: CustomScrollView(
-                  slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _PlayfulBalanceCard(balanceCents: data.balanceCents),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: _PlayfulRecordCta(
-                    onPressed: () {
-                      Navigator.of(context).push<void>(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const AddRecordPage(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 28, 16, 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '今日摘要',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: _PlayfulRecordCta(
+                  onPressed: () {
+                    Navigator.of(context).push<void>(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AddRecordPage(),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          ref.read(appShellTabIndexProvider.notifier).state = 2;
-                        },
-                        child: const Text('查看全部'),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _StickerStatCard(
-                            label: '收入',
-                            value: '+${formatCentsToYuan(tInc)}',
-                            icon: Icons.south_east_rounded,
-                            iconBg: scheme.primaryContainer,
-                            iconColor: TinyLedgerPlayfulColors.primaryDim,
-                            amountColor: scheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 22),
-                            child: _StickerStatCard(
-                              label: '支出',
-                              value: '-${formatCentsToYuan(tExp)}',
-                              icon: Icons.north_west_rounded,
-                              iconBg: scheme.tertiaryContainer,
-                              iconColor: scheme.tertiary,
-                              amountColor: scheme.tertiary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '最近流水',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          ref.read(appShellTabIndexProvider.notifier).state = 2;
-                        },
-                        child: const Text('账本'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (data.transactions.isEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset),
-                    child: Text(
-                      '还没有记录，点上面紫色「记一笔」开始吧。',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        height: 1.35,
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 28, 16, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '今日摘要',
+                        style: Theme.of(context).textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((ctx, i) {
-                      final t = data.transactions[i];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Material(
-                          color: scheme.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            child: LedgerTransactionTile(tx: t, dense: true),
-                          ),
-                        ),
-                      );
-                    }, childCount: data.transactions.length.clamp(0, 6)),
-                  ),
-                ),
+                    TextButton(
+                      onPressed: () {
+                        ref.read(appShellTabIndexProvider.notifier).state = 2;
+                      },
+                      child: const Text('查看全部'),
+                    ),
                   ],
                 ),
               ),
-            ],
-          );
-        },
-      ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _StickerStatCard(
+                          label: '收入',
+                          value: '+${formatCentsToYuan(tInc)}',
+                          icon: Icons.south_east_rounded,
+                          iconBg: scheme.primaryContainer,
+                          iconColor: TinyLedgerPlayfulColors.primaryDim,
+                          amountColor: scheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 22),
+                          child: _StickerStatCard(
+                            label: '支出',
+                            value: '-${formatCentsToYuan(tExp)}',
+                            icon: Icons.north_west_rounded,
+                            iconBg: scheme.tertiaryContainer,
+                            iconColor: scheme.tertiary,
+                            amountColor: scheme.tertiary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '最近流水',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        ref.read(appShellTabIndexProvider.notifier).state = 2;
+                      },
+                      child: const Text('账本'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (data.transactions.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset),
+                  child: Text(
+                    '还没有记录，点上面紫色「记一笔」开始吧。',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((ctx, i) {
+                    final t = data.transactions[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Material(
+                        color: scheme.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          child: LedgerTransactionTile(tx: t, dense: true),
+                        ),
+                      ),
+                    );
+                  }, childCount: data.transactions.length.clamp(0, 6)),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

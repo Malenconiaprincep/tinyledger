@@ -48,4 +48,11 @@ class FakeLedgerRepository implements LedgerRepository {
   ) async {
     await action(this);
   }
+
+  @override
+  Future<void> clearPracticeDataLocal() async {
+    transactions.clear();
+    goals.clear();
+    meta.remove('last_learning_bonus_ms');
+  }
 }

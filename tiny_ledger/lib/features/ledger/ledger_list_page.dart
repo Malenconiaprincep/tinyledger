@@ -50,100 +50,95 @@ class LedgerListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final snap = ref.watch(ledgerSnapshotProvider);
     final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: snap.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('加载失败：$e')),
-        data: (data) {
-          if (data.transactions.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(28),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.receipt_long_outlined,
-                      size: 48,
+    return snap.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('加载失败：$e')),
+      data: (data) {
+        if (data.transactions.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 24, 28, 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.receipt_long_outlined,
+                    size: 48,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '我的账本',
+                    style: Theme.of(context).textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '还没有发现记录，去首页点「记一笔」吧。',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: scheme.onSurfaceVariant,
+                      height: 1.4,
                     ),
-                    const SizedBox(height: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final grouped = <DateTime, List<LedgerTransaction>>{};
+        for (final t in data.transactions) {
+          final d = DateTime(
+            t.createdAt.year,
+            t.createdAt.month,
+            t.createdAt.day,
+          );
+          grouped.putIfAbsent(d, () => []).add(t);
+        }
+        for (final txs in grouped.values) {
+          txs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        }
+        final days = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+        final bottomInset = MediaQuery.paddingOf(context).bottom + 88;
+
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
                       '我的账本',
-                      style: Theme.of(context).textTheme.titleMedium,
-                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
-                      '还没有发现记录，去首页点「记一笔」吧。',
+                      'Here are all your discoveries!',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
-                        height: 1.4,
+                        fontWeight: FontWeight.w500,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
-            );
-          }
-
-          final grouped = <DateTime, List<LedgerTransaction>>{};
-          for (final t in data.transactions) {
-            final d = DateTime(
-              t.createdAt.year,
-              t.createdAt.month,
-              t.createdAt.day,
-            );
-            grouped.putIfAbsent(d, () => []).add(t);
-          }
-          for (final txs in grouped.values) {
-            txs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          }
-          final days = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
-
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '我的账本',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Here are all your discoveries!',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(16, 6, 16, bottomInset),
+              sliver: SliverList.builder(
+                itemCount: _itemCount(days, grouped),
+                itemBuilder: (ctx, index) {
+                  return _buildItem(context, scheme, index, days, grouped);
+                },
               ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
-                sliver: SliverList.builder(
-                  itemCount: _itemCount(days, grouped),
-                  itemBuilder: (ctx, index) {
-                    return _buildItem(context, scheme, index, days, grouped);
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/app_header.dart';
 import '../../app/tiny_ledger_theme.dart';
 import '../../domain/ledger_service.dart';
 import '../../domain/money.dart';
@@ -21,64 +20,57 @@ class GoalsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final snap = ref.watch(ledgerSnapshotProvider);
     final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: snap.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('加载失败：$e')),
-        data: (data) {
-          final realItems = <GoalListItem>[
-            for (var i = 0; i < data.goals.length; i++)
-              GoalListItem.fromSavingsGoal(
-                data.goals[i],
-                i.isEven
-                    ? GoalProgressTone.secondary
-                    : GoalProgressTone.tertiary,
-              ),
-          ];
-          final bottomInset = MediaQuery.paddingOf(context).bottom + 88;
+    return snap.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('加载失败：$e')),
+      data: (data) {
+        final realItems = <GoalListItem>[
+          for (var i = 0; i < data.goals.length; i++)
+            GoalListItem.fromSavingsGoal(
+              data.goals[i],
+              i.isEven
+                  ? GoalProgressTone.secondary
+                  : GoalProgressTone.tertiary,
+            ),
+        ];
+        final bottomInset = MediaQuery.paddingOf(context).bottom + 88;
 
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const TinyLedgerAppHeader(),
-                        Text(
-                          '我的目标',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '离梦想越来越近啦！继续加油哦～ \u{1F31F}',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyLarge?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        _NewGoalGradientCta(
-                          onPressed: () {
-                            Navigator.of(context).push<void>(
-                              MaterialPageRoute<void>(
-                                builder: (_) => const AddGoalPage(),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 28),
-                      ],
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '我的目标',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '离梦想越来越近啦！继续加油哦～ \u{1F31F}',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _NewGoalGradientCta(
+                      onPressed: () {
+                        Navigator.of(context).push<void>(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const AddGoalPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 28),
+                  ],
                 ),
               ),
+            ),
               if (realItems.isEmpty && !showStitchSamples)
                 SliverToBoxAdapter(
                   child: Padding(
@@ -131,11 +123,10 @@ class GoalsPage extends ConsumerWidget {
                       child: DreamGoalCard(item: item),
                     ),
                   ),
-              SliverToBoxAdapter(child: SizedBox(height: bottomInset)),
-            ],
-          );
-        },
-      ),
+            SliverToBoxAdapter(child: SizedBox(height: bottomInset)),
+          ],
+        );
+      },
     );
   }
 

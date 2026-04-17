@@ -61,7 +61,14 @@ class TinyLedgerAppHeader extends StatelessWidget {
               IconButton(
                 tooltip: '通知（占位）',
                 onPressed: () {},
-                icon: Icon(Icons.notifications_rounded, color: scheme.primary),
+                style: IconButton.styleFrom(
+                  backgroundColor: scheme.surfaceContainerHigh,
+                  foregroundColor: scheme.primary,
+                  padding: const EdgeInsets.all(10),
+                  minimumSize: const Size(44, 44),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                icon: const Icon(Icons.notifications_rounded, size: 22),
               ),
         ],
       ),

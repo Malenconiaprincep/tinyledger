@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/app_header.dart';
 import '../../app/tiny_ledger_theme.dart';
 import '../../providers.dart';
 import '../parent/parent_placeholder_page.dart';
@@ -17,45 +16,39 @@ class MorePage extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final bottomInset = MediaQuery.paddingOf(context).bottom + 88;
 
-    return Scaffold(
-      body: reduce.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('加载失败：$e')),
-        data: (userReduce) {
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const TinyLedgerAppHeader(),
-                        const SizedBox(height: 12),
-                        Text(
-                          '设置',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '和家长一起，把体验调得刚刚好。',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                            height: 1.35,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _ProfileHeroCard(scheme: scheme),
-                        const SizedBox(height: 24),
-                      ],
+    return reduce.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('加载失败：$e')),
+      data: (userReduce) {
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '设置',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
-                  ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '和家长一起，把体验调得刚刚好。',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _ProfileHeroCard(scheme: scheme),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
+            ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -140,6 +133,44 @@ class MorePage extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   child: Text(
+                    '本地数据',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  child: _SettingsGroupCard(
+                    scheme: scheme,
+                    children: [
+                      Text(
+                        '当前练习数据只保存在本设备。云同步将在后续版本提供；届时可从账号合并或恢复。',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _SettingsNavRow(
+                        scheme: scheme,
+                        icon: Icons.delete_sweep_outlined,
+                        title: '清空本地练习数据',
+                        subtitle: '删除全部流水、存钱目标，并重置学习奖励领取记录。无法撤销。',
+                        onTap: () => MorePage._confirmClearPracticeData(context, ref),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Text(
                     '关于产品',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: scheme.onSurfaceVariant,
@@ -175,9 +206,56 @@ class MorePage extends ConsumerWidget {
               ),
             ],
           );
-        },
-      ),
+      },
     );
+  }
+
+  static Future<void> _confirmClearPracticeData(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final scheme = Theme.of(context).colorScheme;
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('清空本地练习数据？'),
+          content: Text(
+            '将删除本机全部流水与存钱目标，并清除「学习奖励」的领取间隔记录。\n\n'
+            '减弱动效、是否看过引导等设置会保留。此操作无法撤销。',
+            style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(height: 1.35),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: scheme.error,
+                foregroundColor: scheme.onError,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('清空'),
+            ),
+          ],
+        );
+      },
+    );
+    if (go != true || !context.mounted) return;
+    try {
+      await ref.read(ledgerRepositoryProvider).clearPracticeDataLocal();
+      bumpLedger(ref);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已清空本地练习数据')),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('清空失败：$e')),
+      );
+    }
   }
 
   static void _showAgeSheet(BuildContext context) {
