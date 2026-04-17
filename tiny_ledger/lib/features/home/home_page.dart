@@ -255,9 +255,9 @@ class _PlayfulBalanceCard extends StatelessWidget {
           ),
         ],
       ),
-      clipBehavior: Clip.none,
+      clipBehavior: Clip.antiAlias,
       child: Stack(
-        clipBehavior: Clip.none,
+        clipBehavior: Clip.antiAlias,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(22, 22, 22, 26),
@@ -286,7 +286,7 @@ class _PlayfulBalanceCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '学习账户',
+                        '小金库',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: scheme.onPrimary,
                           fontWeight: FontWeight.w800,
@@ -336,15 +336,15 @@ class _PlayfulBalanceCard extends StatelessWidget {
             ),
           ),
           Positioned(
-            right: -6,
-            bottom: -6,
+            right: 4,
+            bottom: 4,
             child: IgnorePointer(
               child: Opacity(
                 opacity: 0.42,
                 child: Image.asset(
                   'assets/images/stitch_playful_coin.png',
-                  width: 118,
-                  height: 118,
+                  width: 100,
+                  height: 100,
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
@@ -356,14 +356,19 @@ class _PlayfulBalanceCard extends StatelessWidget {
     );
   }
 
+  /// [formatCentsToYuan] 已含货币符号，此处去掉，避免与左侧单独样式的 `¥` 重复。
+  static String _numericYuanString(int cents) {
+    return formatCentsToYuan(cents).replaceFirst(RegExp(r'^[¥￥]\s*'), '');
+  }
+
   static String _majorYuan(int cents) {
-    final s = formatCentsToYuan(cents);
+    final s = _numericYuanString(cents);
     final dot = s.indexOf('.');
     return dot < 0 ? s : s.substring(0, dot);
   }
 
   static String _minorYuan(int cents) {
-    final s = formatCentsToYuan(cents);
+    final s = _numericYuanString(cents);
     final dot = s.indexOf('.');
     return dot < 0 ? '' : s.substring(dot);
   }

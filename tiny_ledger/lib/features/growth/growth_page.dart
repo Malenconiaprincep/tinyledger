@@ -7,7 +7,9 @@ import '../../domain/money.dart';
 import '../../providers.dart';
 
 /// 小金库 / 梦想金库：对齐 Stitch「梦想金库 - 趣味探索版」信息架构；滑条与预览为趣味演示，入账仍走既有「学习奖励」规则。
-class GrowthPage extends ConsumerStatefulWidget {
+///
+/// 保持为 [ConsumerWidget]；本地交互状态放在子级 [StatefulWidget]，避免热重载后 Element 仍绑定旧类型（如曾子类化 [ConsumerWidget]）导致运行时报错。
+class GrowthPage extends ConsumerWidget {
   const GrowthPage({super.key});
 
   static const _disclaimer =
@@ -15,20 +17,7 @@ class GrowthPage extends ConsumerStatefulWidget {
       '「确认存入」在满足规则时会发放应用内写好的模拟奖励。';
 
   @override
-  ConsumerState<GrowthPage> createState() => _GrowthPageState();
-}
-
-class _GrowthPageState extends ConsumerState<GrowthPage> {
-  double _sliderYuan = 100;
-
-  int _previewMonthCents() =>
-      ((_sliderYuan / 100.0) * 5.0 * 100).round().clamp(0, 1 << 30);
-
-  int _previewYearCents() =>
-      ((_sliderYuan / 100.0) * 60.0 * 100).round().clamp(0, 1 << 30);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final snap = ref.watch(ledgerSnapshotProvider);
 
@@ -39,7 +28,6 @@ class _GrowthPageState extends ConsumerState<GrowthPage> {
         data: (data) {
           final bottomInset = MediaQuery.paddingOf(context).bottom + 88;
           final balanceText = formatCentsToYuan(data.balanceCents);
-          final depositPreviewYuan = _sliderYuan.round();
 
           return CustomScrollView(
             slivers: [
@@ -80,11 +68,8 @@ class _GrowthPageState extends ConsumerState<GrowthPage> {
                           balanceText: balanceText,
                         ),
                         const SizedBox(height: 20),
-                        _MagicDepositCard(
+                        _GrowthDepositPreviewBlock(
                           scheme: scheme,
-                          depositPreviewYuan: depositPreviewYuan,
-                          sliderYuan: _sliderYuan,
-                          onSliderChanged: (v) => setState(() => _sliderYuan = v),
                           onConfirmDeposit: () async {
                             final applied = await ref
                                 .read(ledgerServiceProvider)
@@ -104,12 +89,6 @@ class _GrowthPageState extends ConsumerState<GrowthPage> {
                               ),
                             );
                           },
-                        ),
-                        const SizedBox(height: 20),
-                        _GrowthPreviewBento(
-                          scheme: scheme,
-                          monthCents: _previewMonthCents(),
-                          yearCents: _previewYearCents(),
                         ),
                         const SizedBox(height: 20),
                         Material(
@@ -153,6 +132,54 @@ class _GrowthPageState extends ConsumerState<GrowthPage> {
           );
         },
       ),
+    );
+  }
+}
+
+/// 滑条与预览金额仅本地状态，用普通 [StatefulWidget] 承接，父级保持 [ConsumerWidget]。
+class _GrowthDepositPreviewBlock extends StatefulWidget {
+  const _GrowthDepositPreviewBlock({
+    required this.scheme,
+    required this.onConfirmDeposit,
+  });
+
+  final ColorScheme scheme;
+  final Future<void> Function() onConfirmDeposit;
+
+  @override
+  State<_GrowthDepositPreviewBlock> createState() =>
+      _GrowthDepositPreviewBlockState();
+}
+
+class _GrowthDepositPreviewBlockState extends State<_GrowthDepositPreviewBlock> {
+  double _sliderYuan = 100;
+
+  int _previewMonthCents() =>
+      ((_sliderYuan / 100.0) * 5.0 * 100).round().clamp(0, 1 << 30);
+
+  int _previewYearCents() =>
+      ((_sliderYuan / 100.0) * 60.0 * 100).round().clamp(0, 1 << 30);
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.scheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _MagicDepositCard(
+          scheme: s,
+          depositPreviewYuan: _sliderYuan.round(),
+          sliderYuan: _sliderYuan,
+          onSliderChanged: (v) => setState(() => _sliderYuan = v),
+          onConfirmDeposit: () => widget.onConfirmDeposit(),
+        ),
+        const SizedBox(height: 20),
+        _GrowthPreviewBento(
+          scheme: s,
+          monthCents: _previewMonthCents(),
+          yearCents: _previewYearCents(),
+        ),
+      ],
     );
   }
 }
