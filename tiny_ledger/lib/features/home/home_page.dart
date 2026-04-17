@@ -9,24 +9,19 @@ import '../../providers.dart';
 import '../ledger/ledger_transaction_tile.dart';
 import '../record/add_record_page.dart';
 
+/// 首页/资产（Stitch **首页/资产 - 趣味探索版**信息架构：渐变余额卡、紫渐变记一笔、今日摘要贴纸）。
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
-  static String _greeting() {
-    final h = DateTime.now().hour;
-    if (h < 12) return '上午好';
-    if (h < 18) return '下午好';
-    return '晚上好';
-  }
-
-  static (int inc, int exp) _weekIncomeExpenseCents(
+  static (int inc, int exp) _todayIncomeExpenseCents(
     List<LedgerTransaction> txs,
   ) {
-    final cutoff = DateTime.now().subtract(const Duration(days: 7));
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day);
     var inc = 0;
     var exp = 0;
     for (final t in txs) {
-      if (t.createdAt.isBefore(cutoff)) continue;
+      if (t.createdAt.isBefore(start)) continue;
       switch (t.kind) {
         case LedgerTxKind.income:
         case LedgerTxKind.learningBonus:
@@ -40,13 +35,6 @@ class HomePage extends ConsumerWidget {
     return (inc, exp);
   }
 
-  static SavingsGoal? _featuredGoal(List<SavingsGoal> goals) {
-    for (final g in goals) {
-      if (!g.isCompleted) return g;
-    }
-    return goals.isEmpty ? null : goals.first;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final snap = ref.watch(ledgerSnapshotProvider);
@@ -56,199 +44,22 @@ class HomePage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('加载失败：$e')),
         data: (data) {
-          final (wInc, wExp) = _weekIncomeExpenseCents(data.transactions);
-          final goal = _featuredGoal(data.goals);
-          return Stack(
-            children: [
-              CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: SafeArea(
-                      bottom: false,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const TinyLedgerAppHeader(),
-                            Text(
-                              '${_greeting()}，今天也来看看小金库吧',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '下面都是练习用的虚拟金额，不是真钱哦。',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: scheme.onSurfaceVariant),
-                            ),
-                            const SizedBox(height: 20),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Material(
-                        color: scheme.primary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(
-                          TinyLedgerLayout.cardRadius,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '学习账户 · 虚拟余额',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.labelLarge?.copyWith(
-                                  color: scheme.onSurfaceVariant,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                formatCentsToYuan(data.balanceCents),
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.displayMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.02,
-                                  color: scheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _MiniStatCard(
-                              title: '近7 天收入',
-                              value: '+${formatCentsToYuan(wInc)}',
-                              icon: Icons.trending_up,
-                              tone: scheme.secondary,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _MiniStatCard(
-                              title: '近 7 天支出',
-                              value: '-${formatCentsToYuan(wExp)}',
-                              icon: Icons.trending_down,
-                              tone: scheme.tertiary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (goal != null)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                        child: Material(
-                          color: scheme.surfaceContainerLowest,
-                          borderRadius: BorderRadius.circular(
-                            TinyLedgerLayout.cardRadius,
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(
-                              TinyLedgerLayout.cardRadius,
-                            ),
-                            onTap: () {
-                              ref
-                                  .read(appShellTabIndexProvider.notifier)
-                                  .state = 1;
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(18),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '进行中的目标',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.labelLarge?.copyWith(
-                                      color: scheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    goal.name,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.w700),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(999),
-                                    child: LinearProgressIndicator(
-                                      minHeight: 8,
-                                      value: goal.progress.clamp(0, 1),
-                                      backgroundColor:
-                                          scheme.surfaceContainerHigh,
-                                      color: scheme.secondary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '${formatCentsToYuan(goal.savedCents)} / ${formatCentsToYuan(goal.targetCents)}',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall?.copyWith(
-                                      color: scheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 22, 16, 8),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '最近流水',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              ref
-                                  .read(appShellTabIndexProvider.notifier)
-                                  .state = 2;
-                            },
-                            child: const Text('去账本'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (data.transactions.isEmpty)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                        child: Text(
-                          '还没有记录，点右下角「记一笔」开始吧。',
+          final (tInc, tExp) = _todayIncomeExpenseCents(data.transactions);
+          final bottomInset = MediaQuery.paddingOf(context).bottom + 24;
+
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const TinyLedgerAppHeader(),
+                        Text(
+                          '虚拟小金库 · 练习用',
                           style: Theme.of(
                             context,
                           ).textTheme.bodyMedium?.copyWith(
@@ -256,51 +67,148 @@ class HomePage extends ConsumerWidget {
                             height: 1.35,
                           ),
                         ),
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate((ctx, i) {
-                          final t = data.transactions[i];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Material(
-                              color: scheme.surfaceContainerLowest,
-                              borderRadius: BorderRadius.circular(16),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 10,
-                                ),
-                                child: LedgerTransactionTile(
-                                  tx: t,
-                                  dense: true,
-                                ),
-                              ),
-                            ),
-                          );
-                        }, childCount: data.transactions.length.clamp(0, 6)),
-                      ),
+                        const SizedBox(height: 20),
+                      ],
                     ),
-                ],
-              ),
-              Positioned(
-                right: 16,
-                bottom: 16 + MediaQuery.paddingOf(context).bottom,
-                child: FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.of(context).push<void>(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const AddRecordPage(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('记一笔'),
+                  ),
                 ),
               ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _PlayfulBalanceCard(balanceCents: data.balanceCents),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: _PlayfulRecordCta(
+                    onPressed: () {
+                      Navigator.of(context).push<void>(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const AddRecordPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 28, 16, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '今日摘要',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          ref.read(appShellTabIndexProvider.notifier).state = 2;
+                        },
+                        child: const Text('查看全部'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _StickerStatCard(
+                            label: '收入',
+                            value: '+${formatCentsToYuan(tInc)}',
+                            icon: Icons.south_east_rounded,
+                            iconBg: scheme.primaryContainer,
+                            iconColor: TinyLedgerPlayfulColors.primaryDim,
+                            amountColor: scheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 22),
+                            child: _StickerStatCard(
+                              label: '支出',
+                              value: '-${formatCentsToYuan(tExp)}',
+                              icon: Icons.north_west_rounded,
+                              iconBg: scheme.tertiaryContainer,
+                              iconColor: scheme.tertiary,
+                              amountColor: scheme.tertiary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '最近流水',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          ref.read(appShellTabIndexProvider.notifier).state = 2;
+                        },
+                        child: const Text('账本'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (data.transactions.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset),
+                    child: Text(
+                      '还没有记录，点上面紫色「记一笔」开始吧。',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((ctx, i) {
+                      final t = data.transactions[i];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Material(
+                          color: scheme.surfaceContainerLowest,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            child: LedgerTransactionTile(tx: t, dense: true),
+                          ),
+                        ),
+                      );
+                    }, childCount: data.transactions.length.clamp(0, 6)),
+                  ),
+                ),
             ],
           );
         },
@@ -309,18 +217,242 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-class _MiniStatCard extends StatelessWidget {
-  const _MiniStatCard({
-    required this.title,
+class _PlayfulBalanceCard extends StatelessWidget {
+  const _PlayfulBalanceCard({required this.balanceCents});
+
+  final int balanceCents;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(TinyLedgerLayout.cardRadius),
+        gradient: LinearGradient(
+          colors: [scheme.primary, TinyLedgerPlayfulColors.primaryDim],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.primary.withValues(alpha: 0.38),
+            blurRadius: 32,
+            offset: const Offset(0, 20),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.none,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 22, 22, 26),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.14),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.auto_awesome_rounded,
+                        size: 18,
+                        color: scheme.onPrimary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '学习账户',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: scheme.onPrimary,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '¥',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      TextSpan(
+                        text: _majorYuan(balanceCents),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displayMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -1.5,
+                          height: 1,
+                        ),
+                      ),
+                      TextSpan(
+                        text: _minorYuan(balanceCents),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineSmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.82),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            right: -6,
+            bottom: -6,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.42,
+                child: Image.asset(
+                  'assets/images/stitch_playful_coin.png',
+                  width: 118,
+                  height: 118,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _majorYuan(int cents) {
+    final s = formatCentsToYuan(cents);
+    final dot = s.indexOf('.');
+    return dot < 0 ? s : s.substring(0, dot);
+  }
+
+  static String _minorYuan(int cents) {
+    final s = formatCentsToYuan(cents);
+    final dot = s.indexOf('.');
+    return dot < 0 ? '' : s.substring(dot);
+  }
+}
+
+class _PlayfulRecordCta extends StatelessWidget {
+  const _PlayfulRecordCta({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      borderRadius: BorderRadius.circular(TinyLedgerLayout.cardRadius),
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      child: InkWell(
+        onTap: onPressed,
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [scheme.secondary, TinyLedgerPlayfulColors.secondaryDim],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: scheme.secondary.withValues(alpha: 0.32),
+                blurRadius: 28,
+                offset: const Offset(0, 16),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 20, 18, 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '新记录',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelMedium?.copyWith(
+                          color: scheme.secondaryContainer,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '记一笔',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineSmall?.copyWith(
+                          color: scheme.onSecondary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.22),
+                  ),
+                  child: Icon(
+                    Icons.add_rounded,
+                    color: scheme.onSecondary,
+                    size: 30,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StickerStatCard extends StatelessWidget {
+  const _StickerStatCard({
+    required this.label,
     required this.value,
     required this.icon,
-    required this.tone,
+    required this.iconBg,
+    required this.iconColor,
+    required this.amountColor,
   });
 
-  final String title;
+  final String label;
   final String value;
   final IconData icon;
-  final Color tone;
+  final Color iconBg;
+  final Color iconColor;
+  final Color amountColor;
 
   @override
   Widget build(BuildContext context) {
@@ -328,31 +460,34 @@ class _MiniStatCard extends StatelessWidget {
     return Material(
       color: scheme.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(TinyLedgerLayout.cardRadius),
+      elevation: 0,
+      shadowColor: scheme.shadow.withValues(alpha: 0.06),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(icon, size: 18, color: tone),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: iconBg),
+              child: Icon(icon, color: iconColor, size: 22),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: scheme.outline,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+              ),
+            ),
+            const SizedBox(height: 4),
             Text(
               value,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: scheme.onSurface,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: amountColor,
               ),
             ),
           ],

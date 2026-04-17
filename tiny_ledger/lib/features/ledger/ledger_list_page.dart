@@ -25,7 +25,7 @@ class LedgerListPage extends ConsumerWidget {
     final snap = ref.watch(ledgerSnapshotProvider);
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('账本')),
+      appBar: AppBar(title: const Text('账本流水')),
       body: snap.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('加载失败：$e')),
@@ -50,7 +50,7 @@ class LedgerListPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '在「资产」页点「记一笔」，这里就会按日期排好。',
+                      '在首页点紫色「记一笔」，这里就会按日期排好。',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                         height: 1.4,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'stitch_icons.dart';
 import '../features/goals/goals_page.dart';
 import '../features/growth/growth_page.dart';
 import '../features/home/home_page.dart';
@@ -34,30 +35,30 @@ class _AppShellState extends ConsumerState<AppShell> {
         onDestinationSelected: (i) {
           ref.read(appShellTabIndexProvider.notifier).state = i;
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
+            icon: Icon(stitchTabAssetIcon(selected: false)),
+            selectedIcon: Icon(stitchTabAssetIcon(selected: true)),
             label: '资产',
           ),
           NavigationDestination(
-            icon: Icon(Icons.flag_outlined),
-            selectedIcon: Icon(Icons.flag),
+            icon: Icon(stitchTabGoalsIcon(selected: false)),
+            selectedIcon: Icon(stitchTabGoalsIcon(selected: true)),
             label: '目标',
           ),
           NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
+            icon: Icon(stitchTabLedgerIcon(selected: false)),
+            selectedIcon: Icon(stitchTabLedgerIcon(selected: true)),
             label: '账本',
           ),
           NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
+            icon: Icon(stitchTabLearnIcon(selected: false)),
+            selectedIcon: Icon(stitchTabLearnIcon(selected: true)),
             label: '学习',
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
+            icon: Icon(stitchTabSettingsIcon(selected: false)),
+            selectedIcon: Icon(stitchTabSettingsIcon(selected: true)),
             label: '设置',
           ),
         ],

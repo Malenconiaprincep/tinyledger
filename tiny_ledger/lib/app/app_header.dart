@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// 首页顶栏品牌行（对齐「首页/资产 - iOS 温馨版」信息架构：头像 / 品牌 / 通知占位）。
+/// 顶栏品牌行（Stitch **首页/资产 - 趣味探索版**：探险风头像 + 斜体品牌字）。
 class TinyLedgerAppHeader extends StatelessWidget {
   const TinyLedgerAppHeader({super.key});
+
+  static const _avatarAsset = 'assets/images/stitch_playful_avatar.png';
 
   @override
   Widget build(BuildContext context) {
@@ -11,26 +13,44 @@ class TinyLedgerAppHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: scheme.primaryContainer.withValues(alpha: 0.45),
-            child: Icon(Icons.person_outline, color: scheme.primary, size: 26),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: scheme.primary.withValues(alpha: 0.22),
+                width: 2,
+              ),
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                _avatarAsset,
+                fit: BoxFit.cover,
+                errorBuilder:
+                    (_, __, ___) => ColoredBox(
+                      color: scheme.primaryContainer.withValues(alpha: 0.45),
+                      child: Icon(Icons.person_outline, color: scheme.primary),
+                    ),
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'TinyLedger',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+                fontStyle: FontStyle.italic,
                 color: scheme.primary,
-                letterSpacing: -0.03,
+                letterSpacing: -0.04,
               ),
             ),
           ),
           IconButton(
             tooltip: '通知（占位）',
             onPressed: () {},
-            icon: const Icon(Icons.notifications_outlined),
+            icon: Icon(Icons.notifications_rounded, color: scheme.primary),
           ),
         ],
       ),

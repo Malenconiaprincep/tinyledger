@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../app/stitch_icons.dart';
 import '../../domain/ledger_models.dart';
 import '../../domain/money.dart';
 
@@ -30,11 +31,13 @@ class LedgerTransactionTile extends StatelessWidget {
       fontWeight: FontWeight.w600,
       color: tx.signedAmountCents >= 0 ? scheme.secondary : scheme.tertiary,
     );
+    final glyph = stitchLedgerTxIcon(tx);
     if (dense) {
       return ListTile(
         contentPadding: EdgeInsets.zero,
+        leading: Icon(glyph, color: scheme.onSurfaceVariant, size: 22),
         title: Text(title),
-        subtitle: Text(tx.note ?? ''),
+        subtitle: (tx.note ?? '').isEmpty ? null : Text(tx.note!),
         trailing: Text(
           '$prefix${formatCentsToYuan(tx.signedAmountCents.abs())}',
           style: amountStyle,
@@ -44,6 +47,8 @@ class LedgerTransactionTile extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Icon(glyph, color: scheme.onSurfaceVariant, size: 22),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -18,8 +18,8 @@
 - **WHEN** 用户保存支出但未选择分类
 - **THEN** 系统将该笔记录标记为默认未分类且仍可展示在列表中
 
-### Requirement: Add record screen matches iOS Warm edition（记一笔对齐 iOS 温馨版）
-系统 MUST 提供与 Stitch **「记一笔 - iOS 温馨版」** 一致的记账界面；**唯一主参考**资源为 `projects/16236738106685052013/screens/94955256b20d4357a18267410799f1fe`。实现前 MUST **`get_screen`**。界面 MUST 包含稿中所示的 **收入/支出切换语义**（如分段控件或等价可访问实现）、**显著金额区**、**分类/日期/备注** 等关键区块及主保存动作；不得以与 `get_screen` 结构明显不符的简易 bottom sheet 作为最终交付，除非 `get_screen` 的 HTML 明确为底部弹层。
+### Requirement: Add record screen matches Playful Explorer edition（记一笔对齐趣味探索版）
+系统 MUST 提供与 Stitch **「记一笔 - 趣味探索版」** 一致的记账界面；**唯一主参考**资源为 `projects/16236738106685052013/screens/2179535b089d48a68f8bb19a0614073d`。实现前 MUST **`get_screen`**。界面 MUST 包含稿中所示的 **收入/支出切换语义**（如分段控件或等价可访问实现）、**显著金额区**、**分类/日期/备注** 等关键区块及主保存动作；不得以与 `get_screen` 结构明显不符的简易 bottom sheet 作为最终交付，除非 `get_screen` 的 HTML 明确为底部弹层。
 
 #### Scenario: Structure from get_screen
 - **WHEN** 用户打开记一笔
@@ -29,8 +29,8 @@
 - **WHEN** 用户成功保存一笔收入或支出
 - **THEN** 系统提供可感知成功反馈且遵守减弱动效与系统「减少动画」约束
 
-### Requirement: Full ledger list matches iOS Warm edition（流水列表对齐 iOS 温馨版）
-系统 MUST 提供 **流水列表** 视图，其版式与 Stitch **「流水列表 - iOS 温馨版」** 一致；**唯一主参考**资源为 `projects/16236738106685052013/screens/165291e3c5fd414da980d1e7e7f127d9`。实现前 MUST **`get_screen`**。列表 MUST 支持按日期分组或等价清晰层级，单条展示类型、金额、时间与备注（或稿中同等字段）。
+### Requirement: Full ledger list matches Playful Explorer edition（账本流水对齐趣味探索版）
+系统 MUST 提供 **账本流水** 视图，其版式与 Stitch **「账本流水 - 趣味探索版」** 一致；**唯一主参考**资源为 `projects/16236738106685052013/screens/a6ee4018760549c9b975d72fdc6d2f76`。实现前 MUST **`get_screen`**。列表 MUST 支持按日期分组或等价清晰层级，单条展示类型、金额、时间与备注（或稿中同等字段）。
 
 #### Scenario: Navigate to ledger per draft
 - **WHEN** 用户从稿面规定的入口进入流水

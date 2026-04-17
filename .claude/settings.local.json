@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:lh3.googleusercontent.com)",
+      "Bash(flutter analyze *)"
+    ]
+  }
+}

@@ -27,11 +27,24 @@ class MorePage extends ConsumerWidget {
                   horizontal: 18,
                   vertical: 10,
                 ),
-                leading: CircleAvatar(
-                  backgroundColor: scheme.primaryContainer.withValues(
-                    alpha: 0.45,
+                leading: ClipOval(
+                  child: Image.asset(
+                    'assets/images/stitch_playful_avatar.png',
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                    errorBuilder:
+                        (_, __, ___) => ColoredBox(
+                          color: scheme.primaryContainer.withValues(
+                            alpha: 0.45,
+                          ),
+                          child: Icon(
+                            Icons.face_outlined,
+                            color: scheme.primary,
+                            size: 28,
+                          ),
+                        ),
                   ),
-                  child: Icon(Icons.face_outlined, color: scheme.primary),
                 ),
                 title: const Text('小小记账员'),
                 subtitle: const Text('虚拟练习 · 非真实资金'),

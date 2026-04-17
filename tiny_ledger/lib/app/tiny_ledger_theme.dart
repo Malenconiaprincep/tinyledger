@@ -1,36 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// 布局与圆角常量（与 Stitch 温馨版主帧大圆角卡片一致；项目 16236738106685052013）。
+/// 布局与圆角（Stitch「趣味探索版」主帧：`get_screen` 项目 16236738106685052013）。
 abstract final class TinyLedgerLayout {
   static const double cardRadius = 20;
   static const double sheetRadius = 24;
   static const double pillButtonRadius = 999;
 }
 
-/// 浅色 ColorScheme：以「iOS 温馨版」主帧 `get_screen` 气质为准（偏暖底 + 清晰主色），
-/// 与 `get_project.designTheme` 冲突时以单帧为准。
-ColorScheme _stitchLightScheme() {
-  const primary = Color(0xFF2F4FD6);
-  const onPrimary = Color(0xFFFFFFFF);
-  const primaryContainer = Color(0xFF5C6BC0);
-  const onPrimaryContainer = Color(0xFFE8EAFF);
-  const secondary = Color(0xFF3D6B52);
-  const onSecondary = Color(0xFFFFFFFF);
-  const secondaryContainer = Color(0xFFC8EFD6);
-  const onSecondaryContainer = Color(0xFF1E4A30);
-  const tertiary = Color(0xFF8C4A3C);
-  const onTertiary = Color(0xFFFFFFFF);
-  const tertiaryContainer = Color(0xFFFFDAD4);
-  const onTertiaryContainer = Color(0xFF5C1F16);
-  const surface = Color(0xFFFFF9F5);
-  const onSurface = Color(0xFF1C1B1F);
-  const surfaceContainerLow = Color(0xFFF5F0EB);
-  const surfaceContainerHigh = Color(0xFFE8E3DD);
-  const surfaceContainerLowest = Color(0xFFFFFCFA);
-  const outlineVariant = Color(0xFFC5C5D4);
-  const error = Color(0xFFBA1A1A);
-  const onError = Color(0xFFFFFFFF);
+/// 浅色 ColorScheme：来自 **首页/资产 - 趣味探索版** `htmlCode` tailwind tokens（2026-04 MCP）。
+/// 主参考：`projects/16236738106685052013/screens/be63fb89830a4850b779356efecb3613`
+ColorScheme _playfulExplorerScheme() {
+  const primary = Color(0xFF296654);
+  const onPrimary = Color(0xFFC5FFE9);
+  const primaryContainer = Color(0xFFACEAD3);
+  const onPrimaryContainer = Color(0xFF195847);
+  const secondary = Color(0xFF6F5174);
+  const onSecondary = Color(0xFFFFEEFD);
+  const secondaryContainer = Color(0xFFFAD3FD);
+  const onSecondaryContainer = Color(0xFF634668);
+  const tertiary = Color(0xFF785246);
+  const onTertiary = Color(0xFFFFEFEB);
+  const tertiaryContainer = Color(0xFFFFCCBC);
+  const onTertiaryContainer = Color(0xFF664237);
+  const surface = Color(0xFFF5F6F7);
+  const onSurface = Color(0xFF2C2F30);
+  const surfaceContainerLow = Color(0xFFEFF1F2);
+  const surfaceContainerHigh = Color(0xFFE0E3E4);
+  const surfaceContainerLowest = Color(0xFFFFFFFF);
+  const outlineVariant = Color(0xFFABADAE);
+  const error = Color(0xFFB31B25);
+  const onError = Color(0xFFFFEFEE);
 
   final base = ColorScheme.fromSeed(
     seedColor: primary,
@@ -57,11 +57,19 @@ ColorScheme _stitchLightScheme() {
     outlineVariant: outlineVariant,
     error: error,
     onError: onError,
+    surfaceTint: primary,
+    // 供渐变等使用（非 ColorScheme 标准槽位，首页局部 const 引用 primaryDim/secondaryDim）
   );
 }
 
+/// 探索版渐变用色（与稿 tailwind `primary-dim` / `secondary-dim` 一致）。
+abstract final class TinyLedgerPlayfulColors {
+  static const primaryDim = Color(0xFF1B5948);
+  static const secondaryDim = Color(0xFF624568);
+}
+
 ThemeData buildTinyLedgerTheme() {
-  final scheme = _stitchLightScheme();
+  final scheme = _playfulExplorerScheme();
   final baseText = ThemeData(useMaterial3: true, colorScheme: scheme).textTheme;
   final textTheme = GoogleFonts.plusJakartaSansTextTheme(baseText);
 
@@ -86,11 +94,26 @@ ThemeData buildTinyLedgerTheme() {
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: scheme.surface,
-      indicatorColor: scheme.primaryContainer.withValues(alpha: 0.35),
-      labelTextStyle: WidgetStatePropertyAll(
-        textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500),
-      ),
+      backgroundColor: scheme.surfaceContainerLowest.withValues(alpha: 0.92),
+      elevation: 6,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
+      indicatorColor: scheme.primary,
+      height: 72,
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.2,
+          color: selected ? Colors.white : scheme.onSurfaceVariant,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return IconThemeData(
+          color: selected ? Colors.white : scheme.onSurfaceVariant,
+          size: 24,
+        );
+      }),
     ),
     cardTheme: CardThemeData(
       color: scheme.surfaceContainerLowest,

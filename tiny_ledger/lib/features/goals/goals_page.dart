@@ -1,163 +1,131 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/app_header.dart';
 import '../../app/tiny_ledger_theme.dart';
 import '../../domain/ledger_service.dart';
 import '../../domain/money.dart';
 import '../../providers.dart';
+import 'dream_goal_card.dart';
+import 'goal_list_models.dart';
 
+/// 存钱目标：对齐 Stitch「存钱目标 - iOS 温馨版」布局；含设计稿配图与演示数据，接服务器后可关掉演示段。
 class GoalsPage extends ConsumerWidget {
   const GoalsPage({super.key});
+
+  /// 接后端后改为 false，仅展示接口返回的目标。
+  static const bool showStitchSamples = true;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final snap = ref.watch(ledgerSnapshotProvider);
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('存钱目标'),
-        actions: [
-          IconButton(
-            tooltip: '新建目标',
-            onPressed: () => _createGoal(context, ref),
-            icon: const Icon(Icons.add),
-          ),
-        ],
-      ),
       body: snap.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('加载失败：$e')),
         data: (data) {
-          if (data.goals.isEmpty) {
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              children: [
-                Text(
-                  '给心愿一个小进度条',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    height: 1.35,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Center(
+          final realItems = <GoalListItem>[
+            for (var i = 0; i < data.goals.length; i++)
+              GoalListItem.fromSavingsGoal(
+                data.goals[i],
+                i.isEven
+                    ? GoalProgressTone.secondary
+                    : GoalProgressTone.tertiary,
+              ),
+          ];
+          final bottomInset = MediaQuery.paddingOf(context).bottom + 88;
+
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: SafeArea(
+                  bottom: false,
                   child: Padding(
-                    padding: const EdgeInsets.all(28),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.savings_outlined,
-                          size: 48,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(height: 16),
+                        const TinyLedgerAppHeader(),
                         Text(
-                          '还没有目标',
-                          style: Theme.of(context).textTheme.titleMedium,
-                          textAlign: TextAlign.center,
+                          '我的目标',
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '点右上角「+」创建一个吧，比如「买一本书」或「存零花钱」。',
+                          '离梦想越来越近啦！继续加油哦～ \u{1F31F}',
                           style: Theme.of(
                             context,
-                          ).textTheme.bodyMedium?.copyWith(
+                          ).textTheme.bodyLarge?.copyWith(
                             color: scheme.onSurfaceVariant,
                             height: 1.4,
                           ),
-                          textAlign: TextAlign.center,
                         ),
+                        const SizedBox(height: 24),
+                        _NewGoalGradientCta(
+                          onPressed: () => _createGoal(context, ref),
+                        ),
+                        const SizedBox(height: 28),
                       ],
                     ),
                   ),
                 ),
-              ],
-            );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            itemCount: data.goals.length + 1,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (ctx, i) {
-              if (i == 0) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    '给心愿一个小进度条',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      height: 1.35,
+              ),
+              if (realItems.isEmpty && !showStitchSamples)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    child: Text(
+                      '还没有自己的目标，点上面「设立新目标」开始吧。',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
-                );
-              }
-              final g = data.goals[i - 1];
-              return Material(
-                color: scheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(
-                  TinyLedgerLayout.cardRadius,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              g.name,
-                              style: Theme.of(ctx).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          if (g.isCompleted)
-                            Chip(
-                              label: const Text('已完成'),
-                              visualDensity: VisualDensity.compact,
-                              backgroundColor: scheme.secondaryContainer,
-                              labelStyle: TextStyle(
-                                color: scheme.onSecondaryContainer,
-                                fontSize: 12,
+              for (final item in realItems)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: DreamGoalCard(
+                      item: item,
+                      onContribute:
+                          item.isCompleted
+                              ? null
+                              : () => _contribute(
+                                context,
+                                ref,
+                                item.id,
+                                item.title,
                               ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: LinearProgressIndicator(
-                          minHeight: 10,
-                          value: g.progress.clamp(0, 1),
-                          backgroundColor: scheme.surfaceContainerHigh,
-                          color: scheme.secondary,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        '${formatCentsToYuan(g.savedCents)} / ${formatCentsToYuan(g.targetCents)}',
-                        style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: FilledButton(
-                          onPressed:
-                              g.isCompleted
-                                  ? null
-                                  : () =>
-                                      _contribute(context, ref, g.id, g.name),
-                          child: const Text('从余额转入'),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              );
-            },
+              if (showStitchSamples && realItems.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    child: Text(
+                      '心愿示例（仅演示，不接余额）',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              if (showStitchSamples)
+                for (final item in kStitchSampleGoals)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: DreamGoalCard(item: item),
+                    ),
+                  ),
+              SliverToBoxAdapter(child: SizedBox(height: bottomInset)),
+            ],
           );
         },
       ),
@@ -306,5 +274,88 @@ class GoalsPage extends ConsumerWidget {
         ).showSnackBar(SnackBar(content: Text(e.message)));
       }
     }
+  }
+}
+
+class _NewGoalGradientCta extends StatelessWidget {
+  const _NewGoalGradientCta({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      borderRadius: BorderRadius.circular(TinyLedgerLayout.cardRadius),
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      shadowColor: scheme.primary.withValues(alpha: 0.2),
+      child: InkWell(
+        onTap: onPressed,
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [scheme.primary, scheme.primaryContainer],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: scheme.primary.withValues(alpha: 0.18),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 16, 18),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.22),
+                  ),
+                  child: Icon(
+                    Icons.add_rounded,
+                    color: scheme.onPrimary,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '设立新目标',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: scheme.onPrimary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '你想攒钱买什么呢？',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onPrimary.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: scheme.onPrimary.withValues(alpha: 0.55),
+                  size: 32,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
