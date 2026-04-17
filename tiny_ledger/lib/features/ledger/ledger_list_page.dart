@@ -28,7 +28,7 @@ String _txTitle(LedgerTransaction tx) => switch (tx.kind) {
   LedgerTxKind.income => tx.category?.isNotEmpty == true ? tx.category! : '收入',
   LedgerTxKind.expense => tx.category?.isNotEmpty == true ? tx.category! : '支出',
   LedgerTxKind.goalContribution => '存钱目标',
-  LedgerTxKind.learningBonus => '学习奖励',
+  LedgerTxKind.learningBonus => '小金库奖励',
 };
 
 String _txMeta(LedgerTransaction tx) {
@@ -38,7 +38,7 @@ String _txMeta(LedgerTransaction tx) {
     LedgerTxKind.income => '${_formatTime(tx.createdAt)} · 零花钱入账',
     LedgerTxKind.expense => '${_formatTime(tx.createdAt)} · 日常消费',
     LedgerTxKind.goalContribution => '${_formatTime(tx.createdAt)} · 转入目标',
-    LedgerTxKind.learningBonus => '${_formatTime(tx.createdAt)} · 学习任务完成',
+    LedgerTxKind.learningBonus => '${_formatTime(tx.createdAt)} · 小金库',
   };
 }
 

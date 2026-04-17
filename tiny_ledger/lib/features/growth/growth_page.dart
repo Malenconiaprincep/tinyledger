@@ -5,15 +5,12 @@ import '../../app/tiny_ledger_theme.dart';
 import '../../domain/money.dart';
 import '../../providers.dart';
 
-/// 小金库 / 梦想金库：对齐 Stitch「梦想金库 - 趣味探索版」信息架构；滑条与预览为趣味演示，入账仍走既有「学习奖励」规则。
-///
-/// 保持为 [ConsumerWidget]；本地交互状态放在子级 [StatefulWidget]，避免热重载后 Element 仍绑定旧类型（如曾子类化 [ConsumerWidget]）导致运行时报错。
+/// 小金库 / 梦想金库：趣味展示当前余额与「假如多存一点」的预览，不产生额外入账。
 class GrowthPage extends ConsumerWidget {
   const GrowthPage({super.key});
 
   static const _disclaimer =
-      '这里是「学习用模拟」：不会带来真实收益，也不连接股票/基金等市场数据。'
-      '「确认存入」在满足规则时会发放应用内写好的模拟奖励。';
+      '小算盘里的金额来自你在首页记的账与目标存钱，不是真实银行卡余额，也不连接投资市场。';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,28 +51,7 @@ class GrowthPage extends ConsumerWidget {
                       balanceText: balanceText,
                     ),
                     const SizedBox(height: 20),
-                    _GrowthDepositPreviewBlock(
-                      scheme: scheme,
-                      onConfirmDeposit: () async {
-                        final applied = await ref
-                            .read(ledgerServiceProvider)
-                            .tryApplyLearningBonus(
-                              bonusAmountCents: 500,
-                              intervalDays: 7,
-                            );
-                        bumpLedger(ref);
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              applied
-                                  ? '魔法已生效：已发放学习奖励（模拟）'
-                                  : '还没到领取时间，过几天再来试试',
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                    const _GrowthDepositPreviewBlock(),
                     const SizedBox(height: 20),
                     Material(
                       color: scheme.surfaceContainerLowest,
@@ -120,15 +96,9 @@ class GrowthPage extends ConsumerWidget {
   }
 }
 
-/// 滑条与预览金额仅本地状态，用普通 [StatefulWidget] 承接，父级保持 [ConsumerWidget]。
+/// 滑条与预览金额仅本地状态，用普通 [StatefulWidget] 承接。
 class _GrowthDepositPreviewBlock extends StatefulWidget {
-  const _GrowthDepositPreviewBlock({
-    required this.scheme,
-    required this.onConfirmDeposit,
-  });
-
-  final ColorScheme scheme;
-  final Future<void> Function() onConfirmDeposit;
+  const _GrowthDepositPreviewBlock();
 
   @override
   State<_GrowthDepositPreviewBlock> createState() =>
@@ -146,7 +116,7 @@ class _GrowthDepositPreviewBlockState extends State<_GrowthDepositPreviewBlock> 
 
   @override
   Widget build(BuildContext context) {
-    final s = widget.scheme;
+    final s = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -155,7 +125,6 @@ class _GrowthDepositPreviewBlockState extends State<_GrowthDepositPreviewBlock> 
           depositPreviewYuan: _sliderYuan.round(),
           sliderYuan: _sliderYuan,
           onSliderChanged: (v) => setState(() => _sliderYuan = v),
-          onConfirmDeposit: () => widget.onConfirmDeposit(),
         ),
         const SizedBox(height: 20),
         _GrowthPreviewBento(
@@ -270,7 +239,7 @@ class _DreamVaultHeroCard extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 child: Text(
-                  '每满 7 天可领取一次「学习奖励」¥5.00（模拟）',
+                  '想增加余额？去首页点「记一笔」吧',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
@@ -292,14 +261,12 @@ class _MagicDepositCard extends StatelessWidget {
     required this.depositPreviewYuan,
     required this.sliderYuan,
     required this.onSliderChanged,
-    required this.onConfirmDeposit,
   });
 
   final ColorScheme scheme;
   final int depositPreviewYuan;
   final double sliderYuan;
   final ValueChanged<double> onSliderChanged;
-  final VoidCallback onConfirmDeposit;
 
   @override
   Widget build(BuildContext context) {
@@ -320,7 +287,7 @@ class _MagicDepositCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              '拖动滑条想象一次「存入」；点击下方按钮在满足规则时领取模拟奖励。',
+              '拖动滑条看看「假如多存一点」会长什么样——只是画面上的小游戏，不会真的改余额。',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
                 height: 1.4,
@@ -330,7 +297,7 @@ class _MagicDepositCard extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  '本次存入预览',
+                  '本次预览',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: scheme.onSurfaceVariant,
                     fontWeight: FontWeight.w600,
@@ -378,35 +345,6 @@ class _MagicDepositCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 18),
-            Material(
-              borderRadius: BorderRadius.circular(TinyLedgerLayout.cardRadius),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: onConfirmDeposit,
-                child: Ink(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [scheme.primary, scheme.primaryContainer],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: Text(
-                        '确认存入（模拟）',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: scheme.onPrimary,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ),
           ],
         ),

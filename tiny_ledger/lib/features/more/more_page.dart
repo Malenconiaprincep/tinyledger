@@ -160,7 +160,7 @@ class MorePage extends ConsumerWidget {
                         scheme: scheme,
                         icon: Icons.delete_sweep_outlined,
                         title: '清空本地练习数据',
-                        subtitle: '删除全部流水、存钱目标，并重置学习奖励领取记录。无法撤销。',
+                        subtitle: '删除全部流水与存钱目标。无法撤销。',
                         onTap: () => MorePage._confirmClearPracticeData(context, ref),
                       ),
                     ],
@@ -221,7 +221,7 @@ class MorePage extends ConsumerWidget {
         return AlertDialog(
           title: const Text('清空本地练习数据？'),
           content: Text(
-            '将删除本机全部流水与存钱目标，并清除「学习奖励」的领取间隔记录。\n\n'
+            '将删除本机全部流水与存钱目标。\n\n'
             '减弱动效、是否看过引导等设置会保留。此操作无法撤销。',
             style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(height: 1.35),
           ),
@@ -282,7 +282,7 @@ class MorePage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        '这是给 8–10 岁小朋友用的「虚拟」记账本：里面的钱不是真钱，用来练习储蓄、花钱、定小目标和认识「增值」的小知识。',
+                        '这是给 8–10 岁小朋友用的「虚拟」记账本：里面的钱不是真钱，用来练习储蓄、花钱和定小目标。',
                         style: Theme.of(
                           ctx,
                         ).textTheme.bodyLarge?.copyWith(height: 1.35),

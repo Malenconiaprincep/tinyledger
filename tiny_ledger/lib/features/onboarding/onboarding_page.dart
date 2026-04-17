@@ -20,7 +20,7 @@ class OnboardingPage extends ConsumerWidget {
               Text('欢迎来到小算盘', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 12),
               Text(
-                '这是给 8–10 岁小朋友用的「虚拟」记账本：里面的钱不是真钱，用来练习储蓄、花钱、定小目标和认识「增值」的小知识。',
+                '这是给 8–10 岁小朋友用的「虚拟」记账本：里面的钱不是真钱，用来练习储蓄、花钱和定小目标。',
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(height: 1.35),

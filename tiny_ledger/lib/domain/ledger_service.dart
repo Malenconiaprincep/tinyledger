@@ -123,39 +123,4 @@ class LedgerService {
       );
     });
   }
-
-  /// 学习奖励：仅使用应用内规则（固定金额 + 周期间隔），不访问外部市场。
-  Future<bool> tryApplyLearningBonus({
-    required int bonusAmountCents,
-    required int intervalDays,
-  }) async {
-    if (bonusAmountCents <= 0) return false;
-    if (intervalDays <= 0) return false;
-
-    final lastRaw = await _repo.metaGet('last_learning_bonus_ms');
-    final now = DateTime.now();
-    if (lastRaw != null) {
-      final last = DateTime.fromMillisecondsSinceEpoch(int.parse(lastRaw));
-      if (now.difference(last).inDays < intervalDays) {
-        return false;
-      }
-    }
-
-    await _repo.runInTransaction((scoped) async {
-      await scoped.insertTransaction(
-        LedgerTransaction(
-          id: _uuid.v4(),
-          kind: LedgerTxKind.learningBonus,
-          signedAmountCents: bonusAmountCents,
-          createdAt: now,
-          note: '学习用周期奖励（模拟）',
-        ),
-      );
-      await scoped.metaSet(
-        'last_learning_bonus_ms',
-        '${now.millisecondsSinceEpoch}',
-      );
-    });
-    return true;
-  }
 }

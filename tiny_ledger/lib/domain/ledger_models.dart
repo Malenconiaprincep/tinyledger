@@ -1,3 +1,4 @@
+/// [learningBonus] 仅兼容旧版数据库流水；新记账不再产生该类型。
 enum LedgerTxKind { income, expense, goalContribution, learningBonus }
 
 extension LedgerTxKindWire on LedgerTxKind {

@@ -25,7 +25,7 @@ class LedgerTransactionTile extends StatelessWidget {
       LedgerTxKind.expense =>
         '支出${tx.category != null ? ' · ${tx.category}' : ''}',
       LedgerTxKind.goalContribution => '转入目标',
-      LedgerTxKind.learningBonus => '学习奖励（模拟）',
+      LedgerTxKind.learningBonus => '小金库奖励',
     };
     final amountStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
       fontWeight: FontWeight.w600,

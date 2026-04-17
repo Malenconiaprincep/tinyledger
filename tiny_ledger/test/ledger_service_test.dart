@@ -48,22 +48,6 @@ void main() {
     expect(updated.isCompleted, isTrue);
   });
 
-  test('learning bonus respects interval', () async {
-    final repo = FakeLedgerRepository();
-    final svc = LedgerService(repo, uuid: const Uuid());
-    final first = await svc.tryApplyLearningBonus(
-      bonusAmountCents: 100,
-      intervalDays: 7,
-    );
-    expect(first, isTrue);
-    expect(await svc.walletBalanceCents(), 100);
-    final second = await svc.tryApplyLearningBonus(
-      bonusAmountCents: 100,
-      intervalDays: 7,
-    );
-    expect(second, isFalse);
-  });
-
   test('clearPracticeDataLocal wipes tx and goals, keeps meta prefs', () async {
     final repo = FakeLedgerRepository();
     final svc = LedgerService(repo, uuid: const Uuid());
