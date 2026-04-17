@@ -12,6 +12,20 @@ void main() {
     expect(await svc.walletBalanceCents(), 1000);
   });
 
+  test('addIncome stores category and recordedAt', () async {
+    final repo = FakeLedgerRepository();
+    final svc = LedgerService(repo, uuid: const Uuid());
+    final at = DateTime(2024, 6, 1, 12);
+    await svc.addIncome(
+      amountCents: 200,
+      category: '零花钱',
+      recordedAt: at,
+    );
+    final txs = await svc.listTransactions();
+    expect(txs.single.category, '零花钱');
+    expect(txs.single.createdAt, at);
+  });
+
   test('addExpense rejects overspend', () async {
     final repo = FakeLedgerRepository();
     final svc = LedgerService(repo);

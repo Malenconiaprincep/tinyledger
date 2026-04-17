@@ -1,33 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/goals/goals_page.dart';
 import '../features/growth/growth_page.dart';
 import '../features/home/home_page.dart';
+import '../features/ledger/ledger_list_page.dart';
 import '../features/more/more_page.dart';
+import '../providers.dart';
 
-class AppShell extends StatefulWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
-  int index = 0;
+class _AppShellState extends ConsumerState<AppShell> {
+  static const _pages = <Widget>[
+    HomePage(),
+    GoalsPage(),
+    LedgerListPage(),
+    GrowthPage(),
+    MorePage(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final pages = const [HomePage(), GoalsPage(), GrowthPage(), MorePage()];
+    final index = ref.watch(appShellTabIndexProvider);
     return Scaffold(
-      body: pages[index],
+      body: _pages[index],
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
-        onDestinationSelected: (i) => setState(() => index = i),
+        onDestinationSelected: (i) {
+          ref.read(appShellTabIndexProvider.notifier).state = i;
+        },
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: '首页',
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: Icon(Icons.account_balance_wallet),
+            label: '资产',
           ),
           NavigationDestination(
             icon: Icon(Icons.flag_outlined),
@@ -35,14 +46,19 @@ class _AppShellState extends State<AppShell> {
             label: '目标',
           ),
           NavigationDestination(
-            icon: Icon(Icons.auto_graph_outlined),
-            selectedIcon: Icon(Icons.auto_graph),
-            label: '增值',
+            icon: Icon(Icons.receipt_long_outlined),
+            selectedIcon: Icon(Icons.receipt_long),
+            label: '账本',
           ),
           NavigationDestination(
-            icon: Icon(Icons.more_horiz),
-            selectedIcon: Icon(Icons.more_horiz),
-            label: '更多',
+            icon: Icon(Icons.school_outlined),
+            selectedIcon: Icon(Icons.school),
+            label: '学习',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: '设置',
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/tiny_ledger_theme.dart';
 import '../../domain/ledger_service.dart';
 import '../../domain/money.dart';
 import '../../providers.dart';
@@ -11,6 +12,7 @@ class GoalsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final snap = ref.watch(ledgerSnapshotProvider);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: const Text('存钱目标'),
@@ -27,26 +29,77 @@ class GoalsPage extends ConsumerWidget {
         error: (e, _) => Center(child: Text('加载失败：$e')),
         data: (data) {
           if (data.goals.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  '还没有目标。点右上角「+」创建一个吧，比如「买一本书」或「存零花钱」。',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              children: [
+                Text(
+                  '给心愿一个小进度条',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    height: 1.35,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 24),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(28),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.savings_outlined,
+                          size: 48,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '还没有目标',
+                          style: Theme.of(context).textTheme.titleMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '点右上角「+」创建一个吧，比如「买一本书」或「存零花钱」。',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: data.goals.length,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            itemCount: data.goals.length + 1,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (ctx, i) {
-              final g = data.goals[i];
-              return Card(
+              if (i == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    '给心愿一个小进度条',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      height: 1.35,
+                    ),
+                  ),
+                );
+              }
+              final g = data.goals[i - 1];
+              return Material(
+                color: scheme.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(
+                  TinyLedgerLayout.cardRadius,
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -55,20 +108,40 @@ class GoalsPage extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               g.name,
-                              style: Theme.of(ctx).textTheme.titleMedium,
+                              style: Theme.of(ctx).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                           ),
-                          if (g.isCompleted) const Chip(label: Text('已完成')),
+                          if (g.isCompleted)
+                            Chip(
+                              label: const Text('已完成'),
+                              visualDensity: VisualDensity.compact,
+                              backgroundColor: scheme.secondaryContainer,
+                              labelStyle: TextStyle(
+                                color: scheme.onSecondaryContainer,
+                                fontSize: 12,
+                              ),
+                            ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(value: g.progress.clamp(0, 1)),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${formatCentsToYuan(g.savedCents)} / ${formatCentsToYuan(g.targetCents)}',
-                        style: Theme.of(ctx).textTheme.bodyMedium,
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: LinearProgressIndicator(
+                          minHeight: 10,
+                          value: g.progress.clamp(0, 1),
+                          backgroundColor: scheme.surfaceContainerHigh,
+                          color: scheme.secondary,
+                        ),
                       ),
                       const SizedBox(height: 10),
+                      Text(
+                        '${formatCentsToYuan(g.savedCents)} / ${formatCentsToYuan(g.targetCents)}',
+                        style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       Align(
                         alignment: Alignment.centerRight,
                         child: FilledButton(
@@ -106,6 +179,7 @@ class GoalsPage extends ConsumerWidget {
                 controller: nameCtrl,
                 decoration: const InputDecoration(labelText: '目标名称'),
               ),
+              const SizedBox(height: 12),
               TextField(
                 controller: targetCtrl,
                 keyboardType: const TextInputType.numberWithOptions(
@@ -134,9 +208,9 @@ class GoalsPage extends ConsumerWidget {
     if (nameCtrl.text.trim().isEmpty ||
         targetCents == null ||
         targetCents <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请填写正确的目标名称和金额')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请填写正确的目标名称和金额')));
       return;
     }
     try {
@@ -146,9 +220,9 @@ class GoalsPage extends ConsumerWidget {
       bumpLedger(ref);
       if (context.mounted) {
         final name = nameCtrl.text.trim();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('已创建目标「$name」')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('已创建目标「$name」')));
       }
     } on LedgerException catch (e) {
       if (context.mounted) {
@@ -193,9 +267,9 @@ class GoalsPage extends ConsumerWidget {
     if (!context.mounted) return;
     final cents = tryParseYuanToCents(amountCtrl.text);
     if (cents == null || cents <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请输入大于 0 的金额')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请输入大于 0 的金额')));
       return;
     }
     try {

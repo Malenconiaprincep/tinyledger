@@ -1,22 +1,29 @@
 ## ADDED Requirements
 
-### Requirement: Stitch M3 theme tokens in Flutter（Stitch M3 主题在 Flutter 落地）
-系统 MUST 使用与 Stitch 项目 `16236738106685052013` 的 `designTheme.namedColors` 语义一致的 **Material 3 `ColorScheme`**（含 primary / secondary / tertiary / surface / on_* 等关键角色），并在应用根 `ThemeData` 中挂载；圆角策略 MUST 与稿中 **大圆角卡片 + 全圆角主按钮** 气质一致（允许以 `ThemeData` 的 `cardTheme`、`filledButtonTheme` 等等价实现）。
+### Requirement: MCP-verified theme from iOS Warm frames（以 MCP 校验的 iOS 温馨版主题）
+系统 MUST 在落地主题前对 `design.md` 中 **「首页/资产 - iOS 温馨版」** 主参考资源调用 Stitch MCP **`get_screen`**（`projects/16236738106685052013/screens/a5b4b391bc434971ae864d3a33b5bd79`），并以返回内容所体现的色彩层级、圆角与排版气质驱动 **`ColorScheme` / `ThemeData`**；若项目级 `get_project.designTheme` 与 `get_screen` 冲突，MUST 以 **`get_screen`** 为准并在实现处注释说明。
 
-#### Scenario: Theme uses Stitch palette roles
+#### Scenario: Theme matches warm edition focal screen
 - **WHEN** 用户冷启动应用进入任意主界面
-- **THEN** 表面背景、主色按钮与强调文本的颜色角色与 Stitch M3 Refined 设计令牌稿（`TinyLedger 设计令牌 (Design Tokens)`）无肉眼冲突级偏差（对比度保持可读）
+- **THEN** 表面、主色与强调色角色与上述主参考帧经 MCP 对照后的约定一致（对比度可读），且不再以 **M3 Refined** 旧帧为验收依据
 
-### Requirement: Plus Jakarta Sans typography（Plus Jakarta Sans 排版）
-系统 MUST 在支持范围内将 **Plus Jakarta Sans** 作为标题与正文主字体（与 Stitch `designTheme` 中字体枚举一致）；若字体加载失败，MUST 回退到平台无衬线且不改变颜色角色。
+### Requirement: Typography per iOS Warm edition（字体随 iOS 温馨版）
+系统 MUST 将标题与正文主字体与 **iOS 温馨版** 主参考帧（同上 `get_screen`）一致；若该帧使用 **Plus Jakarta Sans** 或其它字体族，MUST 通过 `google_fonts` 或已批准方式加载；失败时 MUST 回退到平台无衬线并记录回退。
 
-#### Scenario: Headline uses primary font family
-- **WHEN** 用户查看首页余额标题或页面大标题
-- **THEN** 文本使用 Plus Jakarta Sans（或已文档化的回退字体）且字重与层级可辨
+#### Scenario: Headline font matches get_screen
+- **WHEN** 用户查看首页/资产大标题或余额区
+- **THEN** 字体族与字重层级与 `get_screen` 所体现的风格一致（允许 Flutter 等价实现）
 
-### Requirement: No harsh 1px section dividers（避免生硬分割线）
-系统 MUST NOT 使用连续的 1px 实线分割主内容区块作为主要分区手段；分区 MUST 优先通过 **卡片表面、间距与 tonal container** 完成，与 Stitch `designMd` 中「No-Line」原则一致。
+### Requirement: Soft sectioning without harsh dividers（柔和分区）
+系统 MUST NOT 使用连续 1px 实线作为主内容区的主要分区手段；MUST 优先使用 **卡片表面、间距与 tonal container**，并与 **iOS 温馨版** 主参考帧（`get_screen`）的分区方式一致。
 
-#### Scenario: Home content uses tonal cards
+#### Scenario: Home uses tonal grouping
 - **WHEN** 用户查看首页/资产主内容区
-- **THEN** 主要区块之间无贯穿全宽的 1px 实线分隔主叙事（列表行内细分允许弱化分隔或留白）
+- **THEN** 主叙事区块之间无贯穿全宽的生硬实线分割（列表行内弱分隔除外）
+
+### Requirement: UI implementation MUST use Stitch MCP before merge（合并前须用 MCP 读稿）
+对任一影响全局主题或壳层导航的 PR，作者 MUST 在描述中列出本 PR 已对照的 **`get_screen` 资源 `name`**；若未对 `design.md` 规定的 iOS 温馨版主帧执行 MCP读稿，该 PR MUST NOT 合并为「温馨版对齐」交付。
+
+#### Scenario: PR cites screen names
+- **WHEN** 评审者检查标称为 iOS 温馨版对齐的 UI PR
+- **THEN** PR 说明中包含至少一个 `projects/16236738106685052013/screens/...` 主参考 `name` 及对照结论

@@ -24,14 +24,21 @@ class LedgerService {
 
   Future<List<SavingsGoal>> listGoals() => _repo.listGoals();
 
-  Future<void> addIncome({required int amountCents, String note = ''}) async {
+  Future<void> addIncome({
+    required int amountCents,
+    String note = '',
+    String? category,
+    DateTime? recordedAt,
+  }) async {
     if (amountCents <= 0) throw LedgerException('入账金额必须大于 0');
+    final at = recordedAt ?? DateTime.now();
     await _repo.insertTransaction(
       LedgerTransaction(
         id: _uuid.v4(),
         kind: LedgerTxKind.income,
         signedAmountCents: amountCents,
-        createdAt: DateTime.now(),
+        createdAt: at,
+        category: category,
         note: note.isEmpty ? null : note,
       ),
     );
@@ -41,12 +48,14 @@ class LedgerService {
     required int amountCents,
     String? category,
     String note = '',
+    DateTime? recordedAt,
   }) async {
     if (amountCents <= 0) throw LedgerException('支出金额必须大于 0');
     final balance = await _repo.walletBalanceCents();
     if (balance < amountCents) {
       throw LedgerException('余额不足，无法记录这笔支出');
     }
+    final at = recordedAt ?? DateTime.now();
     await _repo.insertTransaction(
       LedgerTransaction(
         id: _uuid.v4(),
@@ -54,7 +63,7 @@ class LedgerService {
         signedAmountCents: -amountCents,
         category: category ?? '未分类',
         note: note.isEmpty ? null : note,
-        createdAt: DateTime.now(),
+        createdAt: at,
       ),
     );
   }

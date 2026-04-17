@@ -52,3 +52,6 @@ final reduceMotionUserProvider = FutureProvider<bool>((ref) async {
 void bumpLedger(WidgetRef ref) {
   ref.read(ledgerRefreshProvider.notifier).state++;
 }
+
+/// 底部导航当前索引（资产 / 目标 / 账本 / 学习 / 设置）。
+final appShellTabIndexProvider = StateProvider<int>((ref) => 0);

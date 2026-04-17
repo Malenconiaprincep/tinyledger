@@ -18,13 +18,14 @@ class TinyLedgerApp extends ConsumerWidget {
       builder: (context, child) {
         return Consumer(
           builder: (context, ref, _) {
-            final userReduce = ref.watch(reduceMotionUserProvider).maybeWhen(
-                  data: (v) => v,
-                  orElse: () => false,
-                );
+            final userReduce = ref
+                .watch(reduceMotionUserProvider)
+                .maybeWhen(data: (v) => v, orElse: () => false);
             final mq = MediaQuery.of(context);
             return MediaQuery(
-              data: mq.copyWith(disableAnimations: mq.disableAnimations || userReduce),
+              data: mq.copyWith(
+                disableAnimations: mq.disableAnimations || userReduce,
+              ),
               child: child ?? const SizedBox.shrink(),
             );
           },

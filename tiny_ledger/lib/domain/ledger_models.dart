@@ -60,4 +60,7 @@ class SavingsGoal {
       targetCents <= 0 ? 0 : (savedCents / targetCents).clamp(0, 1).toDouble();
 }
 
+/// 收入分类（对齐「记一笔 - iOS 温馨版」常见选项）。
+const List<String> kIncomeCategories = ['零花钱', '礼物', '玩具', '零食'];
+
 const List<String> kExpenseCategories = ['零食', '文具', '游戏', '礼物', '未分类'];
