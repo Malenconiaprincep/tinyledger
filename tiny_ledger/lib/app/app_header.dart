@@ -2,7 +2,17 @@ import 'package:flutter/material.dart';
 
 /// 顶栏品牌行（Stitch **首页/资产 - 趣味探索版**：探险风头像 + 斜体品牌字）。
 class TinyLedgerAppHeader extends StatelessWidget {
-  const TinyLedgerAppHeader({super.key});
+  const TinyLedgerAppHeader({
+    super.key,
+    this.brandLabel = 'TinyLedger',
+    this.trailing,
+  });
+
+  /// 顶栏主标题（默认品牌名；子页可改为如「梦想金库」）。
+  final String brandLabel;
+
+  /// 右侧操作；默认占位通知按钮。
+  final Widget? trailing;
 
   static const _avatarAsset = 'assets/images/stitch_playful_avatar.png';
 
@@ -38,7 +48,7 @@ class TinyLedgerAppHeader extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'TinyLedger',
+              brandLabel,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w900,
                 fontStyle: FontStyle.italic,
@@ -47,11 +57,12 @@ class TinyLedgerAppHeader extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(
-            tooltip: '通知（占位）',
-            onPressed: () {},
-            icon: Icon(Icons.notifications_rounded, color: scheme.primary),
-          ),
+          trailing ??
+              IconButton(
+                tooltip: '通知（占位）',
+                onPressed: () {},
+                icon: Icon(Icons.notifications_rounded, color: scheme.primary),
+              ),
         ],
       ),
     );

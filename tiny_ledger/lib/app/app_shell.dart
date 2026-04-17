@@ -28,40 +28,62 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     final index = ref.watch(appShellTabIndexProvider);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      extendBody: true,
       body: _pages[index],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (i) {
-          ref.read(appShellTabIndexProvider.notifier).state = i;
-        },
-        destinations: [
-          NavigationDestination(
-            icon: Icon(stitchTabAssetIcon(selected: false)),
-            selectedIcon: Icon(stitchTabAssetIcon(selected: true)),
-            label: '资产',
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(26),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+            border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.2)),
           ),
-          NavigationDestination(
-            icon: Icon(stitchTabGoalsIcon(selected: false)),
-            selectedIcon: Icon(stitchTabGoalsIcon(selected: true)),
-            label: '目标',
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(26),
+            child: NavigationBar(
+              selectedIndex: index,
+              onDestinationSelected: (i) {
+                ref.read(appShellTabIndexProvider.notifier).state = i;
+              },
+              destinations: [
+                NavigationDestination(
+                  icon: Icon(stitchTabAssetIcon(selected: false)),
+                  selectedIcon: Icon(stitchTabAssetIcon(selected: true)),
+                  label: '资产',
+                ),
+                NavigationDestination(
+                  icon: Icon(stitchTabGoalsIcon(selected: false)),
+                  selectedIcon: Icon(stitchTabGoalsIcon(selected: true)),
+                  label: '目标',
+                ),
+                NavigationDestination(
+                  icon: Icon(stitchTabLedgerIcon(selected: false)),
+                  selectedIcon: Icon(stitchTabLedgerIcon(selected: true)),
+                  label: '账本',
+                ),
+                NavigationDestination(
+                  icon: Icon(stitchTabLearnIcon(selected: false)),
+                  selectedIcon: Icon(stitchTabLearnIcon(selected: true)),
+                  label: '小金库',
+                ),
+                NavigationDestination(
+                  icon: Icon(stitchTabSettingsIcon(selected: false)),
+                  selectedIcon: Icon(stitchTabSettingsIcon(selected: true)),
+                  label: '设置',
+                ),
+              ],
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(stitchTabLedgerIcon(selected: false)),
-            selectedIcon: Icon(stitchTabLedgerIcon(selected: true)),
-            label: '账本',
-          ),
-          NavigationDestination(
-            icon: Icon(stitchTabLearnIcon(selected: false)),
-            selectedIcon: Icon(stitchTabLearnIcon(selected: true)),
-            label: '学习',
-          ),
-          NavigationDestination(
-            icon: Icon(stitchTabSettingsIcon(selected: false)),
-            selectedIcon: Icon(stitchTabSettingsIcon(selected: true)),
-            label: '设置',
-          ),
-        ],
+        ),
       ),
     );
   }

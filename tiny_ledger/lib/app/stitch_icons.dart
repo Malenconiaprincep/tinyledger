@@ -15,7 +15,7 @@ IconData stitchTabLedgerIcon({required bool selected}) =>
     selected ? Icons.receipt_long : Icons.receipt_long_outlined;
 
 IconData stitchTabLearnIcon({required bool selected}) =>
-    selected ? Icons.school_rounded : Icons.school_outlined;
+    selected ? Icons.savings_rounded : Icons.savings_outlined;
 
 IconData stitchTabSettingsIcon({required bool selected}) =>
     selected ? Icons.settings : Icons.settings_outlined;

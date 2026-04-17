@@ -2,21 +2,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/tiny_ledger_theme.dart';
+import '../../app/stitch_icons.dart';
 import '../../domain/ledger_models.dart';
+import '../../domain/money.dart';
 import '../../providers.dart';
-import 'ledger_transaction_tile.dart';
 
 String _daySectionLabel(DateTime day) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
   final yesterday = today.subtract(const Duration(days: 1));
   final d = DateTime(day.year, day.month, day.day);
-  if (d == today) return '今天';
-  if (d == yesterday) return '昨天';
-  return '${day.year}年${day.month}月${day.day}日';
+  final monthDay = '${day.month}月${day.day}日';
+  if (d == today) return '今天 · $monthDay';
+  if (d == yesterday) return '昨天 · $monthDay';
+  return '${day.year}年$monthDay';
 }
 
-/// 账本 Tab：按日分组的流水（对齐「流水列表 - iOS 温馨版」）。
+String _formatTime(DateTime time) {
+  final hh = time.hour.toString().padLeft(2, '0');
+  final mm = time.minute.toString().padLeft(2, '0');
+  return '$hh:$mm';
+}
+
+String _txTitle(LedgerTransaction tx) => switch (tx.kind) {
+  LedgerTxKind.income => tx.category?.isNotEmpty == true ? tx.category! : '收入',
+  LedgerTxKind.expense => tx.category?.isNotEmpty == true ? tx.category! : '支出',
+  LedgerTxKind.goalContribution => '存钱目标',
+  LedgerTxKind.learningBonus => '学习奖励',
+};
+
+String _txMeta(LedgerTransaction tx) {
+  final note = (tx.note ?? '').trim();
+  if (note.isNotEmpty) return '${_formatTime(tx.createdAt)} · $note';
+  return switch (tx.kind) {
+    LedgerTxKind.income => '${_formatTime(tx.createdAt)} · 零花钱入账',
+    LedgerTxKind.expense => '${_formatTime(tx.createdAt)} · 日常消费',
+    LedgerTxKind.goalContribution => '${_formatTime(tx.createdAt)} · 转入目标',
+    LedgerTxKind.learningBonus => '${_formatTime(tx.createdAt)} · 学习任务完成',
+  };
+}
+
+/// 账本 Tab：按日分组的流水（对齐「账本流水 - 趣味探索版」）。
 class LedgerListPage extends ConsumerWidget {
   const LedgerListPage({super.key});
 
@@ -25,7 +51,6 @@ class LedgerListPage extends ConsumerWidget {
     final snap = ref.watch(ledgerSnapshotProvider);
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('账本流水')),
       body: snap.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('加载失败：$e')),
@@ -44,13 +69,13 @@ class LedgerListPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      '还没有流水',
+                      '我的账本',
                       style: Theme.of(context).textTheme.titleMedium,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '在首页点紫色「记一笔」，这里就会按日期排好。',
+                      '还没有发现记录，去首页点「记一笔」吧。',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                         height: 1.4,
@@ -72,14 +97,50 @@ class LedgerListPage extends ConsumerWidget {
             );
             grouped.putIfAbsent(d, () => []).add(t);
           }
+          for (final txs in grouped.values) {
+            txs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          }
           final days = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
-          return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
-            itemCount: _itemCount(days, grouped),
-            itemBuilder: (ctx, index) {
-              return _buildItem(context, scheme, index, days, grouped);
-            },
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '我的账本',
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Here are all your discoveries!',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
+                sliver: SliverList.builder(
+                  itemCount: _itemCount(days, grouped),
+                  itemBuilder: (ctx, index) {
+                    return _buildItem(context, scheme, index, days, grouped);
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -108,12 +169,30 @@ class LedgerListPage extends ConsumerWidget {
     for (final d in days) {
       if (cursor == index) {
         return Padding(
-          padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
-          child: Text(
-            _daySectionLabel(d),
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
+          padding: const EdgeInsets.fromLTRB(4, 14, 4, 10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.calendar_today_rounded,
+                  size: 14,
+                  color: scheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _daySectionLabel(d),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -122,17 +201,85 @@ class LedgerListPage extends ConsumerWidget {
       final txs = grouped[d]!;
       for (final t in txs) {
         if (cursor == index) {
+          final amountPrefix = t.signedAmountCents >= 0 ? '+' : '-';
+          final amountColor = t.signedAmountCents >= 0
+              ? scheme.secondary
+              : scheme.tertiary;
           return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Material(
               color: scheme.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(TinyLedgerLayout.cardRadius),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 14,
+                  vertical: 15,
                 ),
-                child: LedgerTransactionTile(tx: t),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: scheme.surfaceContainerHigh,
+                      ),
+                      child: Icon(
+                        stitchLedgerTxIcon(t),
+                        size: 22,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _txTitle(t),
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _txMeta(t),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '$amountPrefix${formatCentsToYuan(t.signedAmountCents.abs())}',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: amountColor,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Star Coins',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           );

@@ -104,7 +104,8 @@ ThemeData buildTinyLedgerTheme() {
         return textTheme.labelMedium?.copyWith(
           fontWeight: FontWeight.w800,
           letterSpacing: 0.2,
-          color: selected ? Colors.white : scheme.onSurfaceVariant,
+          // 选中态文字在指示器外，需使用深色避免“白字白底”不可见。
+          color: selected ? scheme.primary : scheme.onSurfaceVariant,
         );
       }),
       iconTheme: WidgetStateProperty.resolveWith((states) {

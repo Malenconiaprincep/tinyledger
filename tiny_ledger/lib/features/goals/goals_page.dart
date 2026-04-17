@@ -6,6 +6,7 @@ import '../../app/tiny_ledger_theme.dart';
 import '../../domain/ledger_service.dart';
 import '../../domain/money.dart';
 import '../../providers.dart';
+import 'add_goal_page.dart';
 import 'dream_goal_card.dart';
 import 'goal_list_models.dart';
 
@@ -64,7 +65,13 @@ class GoalsPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 24),
                         _NewGoalGradientCta(
-                          onPressed: () => _createGoal(context, ref),
+                          onPressed: () {
+                            Navigator.of(context).push<void>(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const AddGoalPage(),
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 28),
                       ],
@@ -130,75 +137,6 @@ class GoalsPage extends ConsumerWidget {
         },
       ),
     );
-  }
-
-  Future<void> _createGoal(BuildContext context, WidgetRef ref) async {
-    final nameCtrl = TextEditingController();
-    final targetCtrl = TextEditingController();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('新建目标'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(labelText: '目标名称'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: targetCtrl,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(labelText: '目标金额（元）'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('创建'),
-            ),
-          ],
-        );
-      },
-    );
-    if (ok != true) return;
-    if (!context.mounted) return;
-    final targetCents = tryParseYuanToCents(targetCtrl.text);
-    if (nameCtrl.text.trim().isEmpty ||
-        targetCents == null ||
-        targetCents <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('请填写正确的目标名称和金额')));
-      return;
-    }
-    try {
-      await ref
-          .read(ledgerServiceProvider)
-          .createGoal(name: nameCtrl.text, targetCents: targetCents);
-      bumpLedger(ref);
-      if (context.mounted) {
-        final name = nameCtrl.text.trim();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('已创建目标「$name」')));
-      }
-    } on LedgerException catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
-    }
   }
 
   Future<void> _contribute(

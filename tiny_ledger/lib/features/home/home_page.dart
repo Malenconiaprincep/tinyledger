@@ -47,13 +47,17 @@ class HomePage extends ConsumerWidget {
           final (tInc, tExp) = _todayIncomeExpenseCents(data.transactions);
           final bottomInset = MediaQuery.paddingOf(context).bottom + 24;
 
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: SafeArea(
-                  bottom: false,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SafeArea(
+                bottom: false,
+                child: Material(
+                  color: scheme.surface,
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -67,12 +71,19 @@ class HomePage extends ConsumerWidget {
                             height: 1.35,
                           ),
                         ),
-                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
                 ),
               ),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.22),
+              ),
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -209,6 +220,9 @@ class HomePage extends ConsumerWidget {
                     }, childCount: data.transactions.length.clamp(0, 6)),
                   ),
                 ),
+                  ],
+                ),
+              ),
             ],
           );
         },
